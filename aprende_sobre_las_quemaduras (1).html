@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende Sobre las Quemaduras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Color de fondo general suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #game-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 700px; /* Ancho máximo del juego */
+            position: relative;
+        }
+        #background-area {
+            width: 100%;
+            height: 300px; /* Altura del área de la imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+        #ui-area {
+            padding: 25px;
+            text-align: center;
+            position: relative; /* Para que el mensaje de "Te quemaste" se superponga bien */
+        }
+        #level-title {
+            font-family: 'Fredoka One', cursive;
+            color: #ff6b6b; /* Color vibrante para el título del nivel */
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        #question-text {
+            font-size: 1.1em;
+            color: #333;
+            min-height: 60px; /* Espacio para preguntas de varias líneas */
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .option-button {
+            background-color: #4CAF50; /* Verde para opciones */
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            max-width: 350px; /* Ancho máximo de botones */
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .option-button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .option-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #message-area {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 30px; /* Para que no salte el layout */
+        }
+        .message-correct {
+            color: #28a745; /* Verde para correcto */
+        }
+        .message-incorrect {
+            color: #dc3545; /* Rojo para incorrecto (Te quemaste) */
+        }
+        #next-button, #restart-button {
+            background-color: #007bff; /* Azul para siguiente/reiniciar */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #next-button:hover, #restart-button:hover {
+            background-color: #0056b3;
+        }
+        #end-screen {
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+        }
+        #end-message {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5em;
+            color: #ff9f43; /* Naranja festivo */
+            margin-bottom: 20px;
+        }
+
+        /* Animación de Fuegos Artificiales (CSS Básico) */
+        .firework-container {
+            position: relative;
+            width: 200px; /* Ajustar tamaño según sea necesario */
+            height: 200px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #FFD700; /* Color dorado inicial */
+            border-radius: 50%;
+            opacity: 0;
+            animation: firework-explode 1s ease-out forwards;
+        }
+
+        .firework::before, .firework::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: 50%;
+        }
+        /* Partículas individuales */
+        @keyframes firework-explode {
+            0% { opacity: 1; transform: scale(0.3); }
+            100% { opacity: 0; transform: scale(2) translate(var(--tx), var(--ty)); }
+        }
+
+        /* Generar múltiples partículas con diferentes retardos y posiciones */
+        .firework:nth-child(1) { animation-delay: 0s; --tx: 0px; --ty: -60px; background: #ff5252; }
+        .firework:nth-child(2) { animation-delay: 0.1s; --tx: 50px; --ty: -30px; background: #ffc107; }
+        .firework:nth-child(3) { animation-delay: 0.2s; --tx: 50px; --ty: 30px; background: #4caf50; }
+        .firework:nth-child(4) { animation-delay: 0.3s; --tx: 0px; --ty: 60px; background: #2196f3; }
+        .firework:nth-child(5) { animation-delay: 0.4s; --tx: -50px; --ty: 30px; background: #9c27b0; }
+        .firework:nth-child(6) { animation-delay: 0.5s; --tx: -50px; --ty: -30px; background: #e91e63; }
+        .firework:nth-child(7) { animation-delay: 0.15s; --tx: 30px; --ty: -50px; background: #00bcd4; }
+        .firework:nth-child(8) { animation-delay: 0.25s; --tx: -30px; --ty: 50px; background: #8bc34a; }
+        .firework:nth-child(9) { animation-delay: 0.35s; --tx: 60px; --ty: 0px; background: #ff9800; }
+        .firework:nth-child(10) { animation-delay: 0.45s; --tx: -60px; --ty: 0px; background: #795548; }
+
+        /* Media queries para responsividad */
+        @media (max-width: 600px) {
+            #background-area {
+                height: 200px;
+            }
+            #level-title {
+                font-size: 1.5em;
+            }
+            #question-text {
+                font-size: 1em;
+                min-height: 50px;
+            }
+            .option-button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            #end-message {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="background-area"></div>
+        <div id="ui-area">
+            <h2 id="level-title">Nivel 1</h2>
+            <p id="question-text">Cargando pregunta...</p>
+            <div id="options-container">
+                <!-- Los botones de opción se generarán aquí -->
+            </div>
+            <p id="message-area"></p>
+            <button id="next-button" style="display: none;">Siguiente Nivel</button>
+        </div>
+        <div id="end-screen">
+            <h1 id="end-message">¡Te salvaste!</h1>
+            <div class="firework-container">
+                <!-- Generar partículas de fuegos artificiales con JS para reiniciar animación -->
+            </div>
+            <button id="restart-button">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        // Referencias a elementos del DOM
+        const backgroundArea = document.getElementById('background-area');
+        const levelTitle = document.getElementById('level-title');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const messageArea = document.getElementById('message-area');
+        const nextButton = document.getElementById('next-button');
+        const gameContainer = document.getElementById('game-container');
+        const endScreen = document.getElementById('end-screen');
+        const endMessage = document.getElementById('end-message');
+        const restartButton = document.getElementById('restart-button');
+        const fireworkContainer = document.querySelector('.firework-container');
+
+        // Datos del juego: Preguntas, opciones, respuesta correcta y fondo para cada nivel
+        const gameData = [
+            {
+                level: 1,
+                question: "¿Qué debes hacer si ves el mango de una sartén caliente sobresaliendo de la estufa?",
+                options: ["Tocarlo para ver si está caliente", "Avisar a un adulto para que lo mueva", "Jugar cerca de la estufa"],
+                correctAnswer: "Avisar a un adulto para que lo mueva",
+                backgroundImage: "https://placehold.co/700x300/FFDDC1/333333?text=Nivel+1+-+Cocina"
+            },
+            {
+                level: 2,
+                question: "¿Es seguro meter los dedos u objetos en los enchufes eléctricos?",
+                options: ["Sí, si lo hago rápido", "No, es muy peligroso", "Solo si mis manos están secas"],
+                correctAnswer: "No, es muy peligroso",
+                backgroundImage: "https://placehold.co/700x300/C1E1FF/333333?text=Nivel+2+-+Enchufes"
+            },
+            {
+                level: 3,
+                question: "¿Qué debes hacer si alguien va a pasar cerca de ti con una taza de líquido caliente?",
+                options: ["Quedarme quieto y dejar que pase", "Correr y jugar a su alrededor", "Intentar agarrar la taza"],
+                correctAnswer: "Quedarme quieto y dejar que pase",
+                backgroundImage: "https://placehold.co/700x300/D1FFC1/333333?text=Nivel+3+-+Líquidos"
+            },
+            {
+                level: 4,
+                question: "Si tu ropa se prende fuego, ¿qué debes hacer?",
+                options: ["Correr muy rápido para que el viento lo apague", "Detenerte, tirarte al suelo y rodar", "Gritar y esperar ayuda sin moverte"],
+                correctAnswer: "Detenerte, tirarte al suelo y rodar",
+                backgroundImage: "https://placehold.co/700x300/FFC1C1/333333?text=Nivel+4+-+Ropa+en+Llamas"
+            },
+            {
+                level: 5,
+                question: "Si te quemas levemente, ¿qué es lo primero que debes hacer con la quemadura?",
+                options: ["Ponerle hielo directamente", "Poner la zona bajo agua fría (no helada) por varios minutos", "Aplicar pasta de dientes"],
+                correctAnswer: "Poner la zona bajo agua fría (no helada) por varios minutos",
+                backgroundImage: "https://placehold.co/700x300/C1FFFF/333333?text=Nivel+5+-+Primeros+Auxilios"
+            },
+            {
+                level: 6,
+                question: "¿Es seguro jugar con fósforos o encendedores?",
+                options: ["Sí, si no hay adultos cerca", "No, nunca se debe jugar con fuego", "Solo si es para prender una vela de cumpleaños"],
+                correctAnswer: "No, nunca se debe jugar con fuego",
+                backgroundImage: "https://placehold.co/700x300/FFE0B2/333333?text=Nivel+6+-+Fósforos"
+            },
+            {
+                level: 7,
+                question: "¿Qué debes hacer si ves cables eléctricos pelados o rotos?",
+                options: ["Tocarlos para ver si dan chispas", "No tocarlos y avisar a un adulto inmediatamente", "Intentar arreglarlos con cinta adhesiva"],
+                correctAnswer: "No tocarlos y avisar a un adulto inmediatamente",
+                backgroundImage: "https://placehold.co/700x300/E1BEE7/333333?text=Nivel+7+-+Cables"
+            },
+            {
+                level: 8,
+                question: "Al usar protector solar, ¿estás protegido de quemaduras solares todo el día con una sola aplicación?",
+                options: ["Sí, una vez es suficiente", "No, hay que aplicarlo varias veces, especialmente después de nadar", "El protector solar no previene quemaduras"],
+                correctAnswer: "No, hay que aplicarlo varias veces, especialmente después de nadar",
+                backgroundImage: "https://placehold.co/700x300/FFF9C4/333333?text=Nivel+8+-+Sol"
+            },
+            {
+                level: 9,
+                question: "¿Qué es importante recordar sobre los hornos y estufas calientes?",
+                options: ["Se pueden tocar después de usarlos porque se enfrían rápido", "Solo queman si están encendidos con llama", "Mantenerse alejado y no tocarlos, pueden estar muy calientes incluso apagados"],
+                correctAnswer: "Mantenerse alejado y no tocarlos, pueden estar muy calientes incluso apagados",
+                backgroundImage: "https://placehold.co/700x300/B2DFDB/333333?text=Nivel+9+-+Horno"
+            },
+            {
+                level: 10,
+                question: "¿Cuál es el número de emergencia más común al que llamar en caso de un incendio grave o accidente?",
+                options: ["El de la tienda de juguetes", "911 (o el número local de tu país)", "El de un restaurante cercano"],
+                correctAnswer: "911 (o el número local de tu país)",
+                backgroundImage: "https://placehold.co/700x300/F8BBD0/333333?text=Nivel+10+-+Emergencia"
+            }
+        ];
+
+        let currentLevelIndex = 0;
+
+        // Función para cargar un nivel
+        function loadLevel(levelIndex) {
+            if (levelIndex >= gameData.length) {
+                showEndGameScreen();
+                return;
+            }
+
+            const levelData = gameData[levelIndex];
+            levelTitle.textContent = `Nivel ${levelData.level}`;
+            questionText.textContent = levelData.question;
+            backgroundArea.style.backgroundImage = `url('${levelData.backgroundImage}')`;
+            
+            optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
+            messageArea.textContent = '';
+            messageArea.className = 'message-area'; // Reset class
+            nextButton.style.display = 'none';
+
+            levelData.options.forEach(optionText => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.classList.add('option-button');
+                button.onclick = () => handleAnswer(optionText, levelData.correctAnswer, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Función para manejar la respuesta del usuario
+        function handleAnswer(selectedOption, correctAnswer, button) {
+            // Deshabilitar todos los botones de opción después de una selección
+            const optionButtons = optionsContainer.querySelectorAll('.option-button');
+            optionButtons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correctAnswer) {
+                    btn.style.backgroundColor = '#28a745'; // Verde para la correcta
+                } else if (btn.textContent === selectedOption) {
+                    btn.style.backgroundColor = '#dc3545'; // Rojo para la incorrecta seleccionada
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                messageArea.textContent = "¡Correcto! Muy bien.";
+                messageArea.className = 'message-area message-correct';
+            } else {
+                messageArea.textContent = `Te quemaste... ¡Cuidado! La respuesta correcta era: "${correctAnswer}"`;
+                messageArea.className = 'message-area message-incorrect';
+            }
+            nextButton.style.display = 'block'; // Mostrar botón para continuar
+        }
+
+        // Función para el botón "Siguiente Nivel"
+        nextButton.onclick = () => {
+            currentLevelIndex++;
+            loadLevel(currentLevelIndex);
+        };
+
+        // Función para mostrar la pantalla final del juego
+        function showEndGameScreen() {
+            gameContainer.style.display = 'none';
+            endScreen.style.display = 'flex';
+            endMessage.textContent = "¡Te salvaste! Has aprendido mucho.";
+            
+            // Generar fuegos artificiales
+            fireworkContainer.innerHTML = ''; // Limpiar fuegos artificiales anteriores
+            for (let i = 0; i < 10; i++) { // Crear 10 partículas
+                const firework = document.createElement('div');
+                firework.classList.add('firework');
+                // Asignar colores y retardos aleatorios o predefinidos en CSS
+                fireworkContainer.appendChild(firework);
+            }
+        }
+        
+        // Función para reiniciar el juego
+        restartButton.onclick = () => {
+            currentLevelIndex = 0;
+            gameContainer.style.display = 'block'; // O la estructura principal del juego
+            endScreen.style.display = 'none';
+            loadLevel(currentLevelIndex);
+        };
+
+        // Iniciar el juego cuando la página cargue
+        window.onload = () => {
+            loadLevel(currentLevelIndex);
+        };
+    </script>
+</body>
+</html>
